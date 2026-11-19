@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Test Project\\Node\\test-node-project\\storage\\logs\\.32720b00795386c4b3783f3ddac79df1e9533fb7-audit.json",
+    "files": [
+        {
+            "date": 1795056234278,
+            "name": "C:\\Test Project\\Node\\test-node-project\\storage\\logs\\app-2026-11-19.log",
+            "hash": "a7da02d169b0b170c2c0bcd7066f40a585686406b6d8aee85df5b82ffa0f7ffe"
+        }
+    ],
+    "hashType": "sha256"
+}
