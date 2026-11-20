@@ -4,7 +4,12 @@ function validate(schema, source = 'body') {
   return (req, res, next) => {
     try {
       const parsed = schema.parse(req[source]);
-      req[source] = parsed;
+      Object.defineProperty(req, source, {
+        value: parsed,
+        writable: true,
+        configurable: true,
+        enumerable: true
+      });
       next();
     } catch (err) {
       const issues = err.issues || err.errors;

@@ -1,6 +1,6 @@
 # Node.js REST API Starter Project (Clean Architecture)
 
-Project REST API Node.js modular berbasis JavaScript (CommonJS) dengan prinsip **Clean Architecture (Controller - Service - Repository - Domain)**, dibuat dengan konsep, skema database, dan fitur yang setara dengan project Golang (`test-golang-project`).
+Project REST API Node.js modular berbasis JavaScript (CommonJS) dengan prinsip **Clean Architecture (Controller - Service - Repository - Domain)**.
 
 ---
 
@@ -75,11 +75,14 @@ test-node-project/
 ├── storage/
 │   └── logs/                           # File log harian (app-YYYY-MM-DD.log)
 ├── tests/                              # Unit & Integration Tests (Jest + Supertest)
-│   ├── unit/
-│   │   ├── auth.service.test.js
-│   │   ├── user.service.test.js
-│   │   ├── category.service.test.js
-│   │   └── todo.service.test.js
+│   ├── helpers/
+│   │   └── test-helper.js              # Mock router & token generator
+│   ├── unit/                           # Controller Unit Tests (Menyertakan seluruh Endpoint)
+│   │   ├── auth.controller.test.js     # /api/auth/* & /api/profile
+│   │   ├── user.controller.test.js     # /api/user/* (Admin CRUD, soft delete, restore, force)
+│   │   ├── category.controller.test.js # /api/category/* (Owner CRUD, soft delete, restore, force)
+│   │   ├── todo.controller.test.js     # /api/todo/* (Owner CRUD, soft delete, restore, force)
+│   │   └── health.controller.test.js   # /health (DB connected & disconnected status)
 │   └── integration/
 │       ├── health.test.js
 │       └── auth.test.js
@@ -96,7 +99,7 @@ test-node-project/
 ## 🚀 Cara Menjalankan
 
 ### 1. Konfigurasi Environment (`.env`)
-Salin `.env.example` ke `.env` (sudah disiapkan secara otomatis):
+Salin `.env.example` ke `.env`:
 ```env
 APP_NAME=test-node-project
 APP_HOST=127.0.0.1
@@ -154,7 +157,7 @@ npm start
 ```
 
 ### 5. Menjalankan Unit & Integration Test
-Menjalankan seluruh unit test dan integration test:
+Menjalankan seluruh unit test controller dan integration test:
 ```bash
 npm test
 ```
@@ -165,82 +168,37 @@ npm run test:coverage
 
 ---
 
-## 📡 Daftar Endpoint REST API
+## 📡 Cakupan Endpoint & Controller Unit Test
 
-| Method | Endpoint | Auth | Role | Keterangan |
-| :--- | :--- | :---: | :---: | :--- |
-| `GET` | `/health` | No | Public | Health check server & koneksi database |
-| `POST` | `/api/auth/register` | No | Public | Registrasi akun user baru |
-| `POST` | `/api/auth/login` | No | Public | Login akun & mendapatkan Bearer Token JWT |
-| `POST` | `/api/auth/logout` | Yes | All | Logout & blacklist token ke revoked_tokens |
-| `GET` | `/api/profile` | Yes | All | Melihat profil user yang sedang login |
-| `PATCH` | `/api/profile` | Yes | All | Mengubah profil (nama/email/password) sendiri |
-| `GET` | `/api/user` | Yes | **Admin** | Daftar semua user aktif (Pagination & Search) |
-| `POST` | `/api/user` | Yes | **Admin** | Menambahkan user baru via admin |
-| `GET` | `/api/user/deleted` | Yes | **Admin** | Daftar user yang di-soft-delete |
-| `GET` | `/api/user/:id` | Yes | **Admin** | Detail user berdasarkan ID |
-| `PATCH` | `/api/user/:id` | Yes | **Admin** | Update data user |
-| `DELETE` | `/api/user/:id` | Yes | **Admin** | Soft delete user |
-| `PATCH` | `/api/user/:id/restore` | Yes | **Admin** | Restore user yang telah di-soft-delete |
-| `DELETE` | `/api/user/:id/permanent` | Yes | **Admin** | Hapus permanen user dari database |
-| `GET` | `/api/category` | Yes | Owner | Daftar kategori milik user (Pagination & Search) |
-| `POST` | `/api/category` | Yes | Owner | Membuat kategori baru |
-| `GET` | `/api/category/deleted` | Yes | Owner | Daftar kategori yang di-soft-delete |
-| `GET` | `/api/category/:id` | Yes | Owner | Detail kategori |
-| `PATCH` | `/api/category/:id` | Yes | Owner | Update kategori |
-| `DELETE` | `/api/category/:id` | Yes | Owner | Soft delete kategori |
-| `PATCH` | `/api/category/:id/restore`| Yes | Owner | Restore kategori |
-| `DELETE` | `/api/category/:id/permanent`| Yes | Owner | Hapus permanen kategori |
-| `GET` | `/api/todo` | Yes | Owner | Daftar todo (Filter category_id, is_completed, search) |
-| `POST` | `/api/todo` | Yes | Owner | Membuat todo baru |
-| `GET` | `/api/todo/deleted` | Yes | Owner | Daftar todo yang di-soft-delete |
-| `GET` | `/api/todo/:id` | Yes | Owner | Detail todo |
-| `PATCH` | `/api/todo/:id` | Yes | Owner | Update todo |
-| `DELETE` | `/api/todo/:id` | Yes | Owner | Soft delete todo |
-| `PATCH` | `/api/todo/:id/restore` | Yes | Owner | Restore todo |
-| `DELETE` | `/api/todo/:id/permanent` | Yes | Owner | Hapus permanen todo |
-
----
-
-## 🛡️ Format Standar Response API
-
-### Response Sukses:
-```json
-{
-  "success": true,
-  "message": "User profile retrieved successfully",
-  "data": {
-    "id": 1,
-    "name": "Administrator",
-    "email": "admin@example.com",
-    "is_admin": true
-  }
-}
-```
-
-### Response Sukses dengan Paginasi:
-```json
-{
-  "success": true,
-  "message": "Categories retrieved successfully",
-  "data": [...],
-  "pagination": {
-    "page": 1,
-    "limit": 10,
-    "total_items": 3,
-    "total_pages": 1
-  }
-}
-```
-
-### Response Error:
-```json
-{
-  "success": false,
-  "message": "Validation failed",
-  "errors": {
-    "email": "Email must be a valid email address",
-    "password": "Password must be at least 6 characters"
-  }
-}
-```
+| Controller | Method | Endpoint | Auth | Role | Skenario Pengujian Unit Test |
+| :--- | :--- | :--- | :---: | :---: | :--- |
+| **Auth** | `POST` | `/api/auth/register` | No | Public | 201 Sukses, 400 Validasi (body kosong/invalid), 409 Duplikasi Email |
+| **Auth** | `POST` | `/api/auth/login` | No | Public | 200 Sukses (JWT), 400 Validasi, 401 Kredensial Salah |
+| **Auth** | `POST` | `/api/auth/logout` | Yes | All | 200 Sukses, 401 Header Kosong, 401 Token Blacklist/Revoked |
+| **User (Profile)** | `GET` | `/api/profile` | Yes | All | 200 Sukses Profil, 401 Tanpa Token, 404 User Not Found |
+| **User (Profile)** | `PATCH` | `/api/profile` | Yes | All | 200 Sukses Update, 400 Validasi, 409 Email Sudah Dipakai |
+| **User (Admin)** | `GET` | `/api/user` | Yes | **Admin** | 200 Paginasi & Search, 401 Tanpa Token, 403 Non-Admin Guard |
+| **User (Admin)** | `POST` | `/api/user` | Yes | **Admin** | 201 Sukses Buat User, 400 Validasi, 409 Duplikasi Email |
+| **User (Admin)** | `GET` | `/api/user/deleted`| Yes | **Admin** | 200 Daftar Soft-Deleted Users, 403 Non-Admin Guard |
+| **User (Admin)** | `GET` | `/api/user/:id` | Yes | **Admin** | 200 Detail User, 404 User Tidak Ditemukan |
+| **User (Admin)** | `PATCH` | `/api/user/:id` | Yes | **Admin** | 200 Update User, 404 User Not Found |
+| **User (Admin)** | `DELETE`| `/api/user/:id` | Yes | **Admin** | 200 Soft Delete User, 404 User Not Found |
+| **User (Admin)** | `PATCH` | `/api/user/:id/restore` | Yes | **Admin** | 200 Restore User, 404 Not Found |
+| **User (Admin)** | `DELETE`| `/api/user/:id/permanent` | Yes | **Admin** | 200 Hapus Permanen User, 404 Not Found |
+| **Category** | `GET` | `/api/category` | Yes | Owner | 200 Paginasi & Search, 401 Tanpa Token |
+| **Category** | `POST` | `/api/category` | Yes | Owner | 201 Buat Kategori, 400 Validasi (nama kosong) |
+| **Category** | `GET` | `/api/category/deleted` | Yes | Owner | 200 Daftar Soft-Deleted Categories |
+| **Category** | `GET` | `/api/category/:id` | Yes | Owner | 200 Detail Kategori, 404 Kategori Not Found |
+| **Category** | `PATCH` | `/api/category/:id` | Yes | Owner | 200 Update Kategori, 404 Not Found |
+| **Category** | `DELETE`| `/api/category/:id` | Yes | Owner | 200 Soft Delete Kategori, 404 Not Found |
+| **Category** | `PATCH` | `/api/category/:id/restore` | Yes | Owner | 200 Restore Kategori, 404 Not Found |
+| **Category** | `DELETE`| `/api/category/:id/permanent` | Yes | Owner | 200 Hapus Permanen Kategori, 404 Not Found |
+| **Todo** | `GET` | `/api/todo` | Yes | Owner | 200 Paginasi & Filter (category, is_completed, search), 401 Tanpa Token |
+| **Todo** | `POST` | `/api/todo` | Yes | Owner | 201 Buat Todo, 400 Validasi, 400 Kategori Bukan Milik User |
+| **Todo** | `GET` | `/api/todo/deleted` | Yes | Owner | 200 Daftar Soft-Deleted Todos |
+| **Todo** | `GET` | `/api/todo/:id` | Yes | Owner | 200 Detail Todo, 404 Not Found |
+| **Todo** | `PATCH` | `/api/todo/:id` | Yes | Owner | 200 Update Todo, 404 Not Found |
+| **Todo** | `DELETE`| `/api/todo/:id` | Yes | Owner | 200 Soft Delete Todo, 404 Not Found |
+| **Todo** | `PATCH` | `/api/todo/:id/restore` | Yes | Owner | 200 Restore Todo, 404 Not Found |
+| **Todo** | `DELETE`| `/api/todo/:id/permanent` | Yes | Owner | 200 Hapus Permanen Todo, 404 Not Found |
+| **Health** | `GET` | `/health` | No | Public | 200 Database Connected, 200 Database Disconnected |
