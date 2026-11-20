@@ -15,24 +15,27 @@ Dokumentasi daftar perintah command line (*CLI*) untuk project Node.js REST API 
 * **Validation:** Zod (`zod`)
 * **Testing:** Jest (`jest`) & Supertest (`supertest`)
 * **Logging:** Winston (`winston`) & Winston Daily Rotate File
+* **Containerization:** Docker (`Dockerfile` multi-stage & `compose.yaml`)
 * **Arsitektur:** Controller $\rightarrow$ Service (Use Case) $\rightarrow$ Repository $\rightarrow$ Domain Entity
 
 ---
 
-## ⚡ Daftar Perintah NPM Script
+## ⚡ 1. Menjalankan Server Lokal (NPM Scripts)
 
-### 1. Menjalankan Server Aplikasi
 ```bash
-# Menjalankan server dalam mode development dengan auto-reload (watch mode)
+# Mode development dengan auto-reload (watch mode)
 npm run dev
 
-# Menjalankan server dalam mode production standar
+# Mode production standar
 npm start
 ```
 
-### 2. Database Migration (Knex)
+---
+
+## 🗄️ 2. Database Migration & Seeder (Knex)
+
 ```bash
-# Menjalankan seluruh file migration yang belum dieksekusi
+# Menjalankan seluruh file migration yang belum diaplikasikan
 npm run migrate
 
 # Melihat status riwayat migrasi (apakah sudah Up atau Pending)
@@ -41,49 +44,82 @@ npm run migrate:status
 # Rollback 1 batch migrasi terakhir
 npm run migrate:rollback
 
-# Membuat file skema migrasi baru (otomatis ada timestamp)
+# Membuat file skema migrasi baru (otomatis dengan timestamp)
 npm run migrate:make <nama_migrasi>
-# Contoh: npm run migrate:make create_products_table
-```
+# Contoh: npm run migrate:make create_orders_table
 
-### 3. Database Seeder
-```bash
-# Menjalankan seluruh seeder (users, categories, todos)
+# Menjalankan database seeder
 npm run seed
 
 # Membuat file seeder baru
 npm run seed:make <nama_seeder>
-# Contoh: npm run seed:make 04_products_seed
+# Contoh: npm run seed:make 04_orders_seed
 ```
 
-### 4. Testing & Code Quality
+---
+
+## 🧪 3. Unit & Integration Testing (Jest)
+
 ```bash
-# Menjalankan seluruh unit test dan integration test
+# Menjalankan seluruh test suite (70 tests)
 npm test
 
-# Menjalankan test dalam mode watch (otomatis re-run saat file diedit)
+# Menjalankan test dalam mode watch (otomatis re-run saat file disimpan)
 npm run test:watch
 
-# Menjalankan test sekaligus generate laporan code coverage
+# Menjalankan test beserta laporan code coverage
 npm run test:coverage
 ```
 
 ---
 
-## 💻 Contoh Eksekusi Manual (PowerShell)
+## 🐳 4. Docker & Docker Compose
 
-Jika Anda ingin menjalankan perintah manual via PowerShell di Windows:
+### A. Menggunakan Docker Compose (Direkomendasikan)
+```bash
+# Build dan jalankan container di latar belakang
+docker compose up -d --build
 
-```powershell
-# Jalankan test
-npm.cmd test
+# Melihat log container secara real-time
+docker compose logs -f api
 
-# Jalankan migrasi
-npm.cmd run migrate
+# Menghentikan container
+docker compose down
 
-# Jalankan seeder
-npm.cmd run seed
+# Menjalankan migrasi database di dalam container
+docker compose exec api npm run migrate
 
-# Jalankan server
-npm.cmd run dev
+# Menjalankan seeder database di dalam container
+docker compose exec api npm run seed
+
+# Menjalankan test di dalam container
+docker compose exec api npm test
+```
+
+### B. Menggunakan Docker CLI Manual
+```bash
+# 1. Build image Docker
+docker build -t test-node-api:latest .
+
+# 2. Jalankan container
+docker run -d \
+  --name test-node-api \
+  -p 5000:5000 \
+  --add-host host.docker.internal:host-gateway \
+  -e APP_HOST=0.0.0.0 \
+  -e APP_PORT=5000 \
+  -e DB_HOST=host.docker.internal \
+  -e DB_PORT=3306 \
+  -e DB_USER=root \
+  -e DB_PASSWORD= \
+  -e DB_NAME=test_node_project \
+  --network test-project-network \
+  test-node-api:latest
+
+# 3. Cek log container
+docker logs -f test-node-api
+
+# 4. Hentikan container
+docker stop test-node-api
+docker rm test-node-api
 ```

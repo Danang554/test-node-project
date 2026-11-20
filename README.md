@@ -166,6 +166,19 @@ Menjalankan test dengan laporan code coverage:
 npm run test:coverage
 ```
 
+### 6. Menjalankan Menggunakan Docker
+Build dan jalankan container dengan Docker Compose:
+```bash
+# Build dan start container
+docker compose up -d --build
+
+# Melihat log
+docker compose logs -f api
+
+# Hentikan container
+docker compose down
+```
+
 ---
 
 ## 📡 Cakupan Endpoint & Controller Unit Test
